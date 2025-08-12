@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd
+                                 http://flowable.org/bpmn http://flowable.org/bpmn/bpmn-model-6.7.2.xsd"
+             id="Definitions_1"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             xmlns:flowable="http://flowable.org/bpmn">
+
+    <process id="approvalProcess" name="审批流程">
+        <startEvent id="startEvent" />
+        <userTask id="approvalTask" name="审批任务">
+            <extensionElements>
+                <flowable:assignee>manager</flowable:assignee>
+            </extensionElements>
+        </userTask>
+        <endEvent id="endEvent" />
+        <sequenceFlow sourceRef="startEvent" targetRef="approvalTask" />
+        <sequenceFlow sourceRef="approvalTask" targetRef="endEvent" />
+    </process>
+
+</definitions>

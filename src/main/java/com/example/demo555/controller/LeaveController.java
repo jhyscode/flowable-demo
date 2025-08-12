@@ -1,10 +1,14 @@
 package com.example.demo555.controller;
 
 import com.example.demo555.entity.TaskDTO;
+import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.history.HistoricActivityInstance;
+import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
+import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +31,9 @@ public class LeaveController {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private HistoryService historyService;
 
     // 启动流程
     @PostMapping("/start")
@@ -61,4 +68,48 @@ public class LeaveController {
         taskService.complete(taskId);
         return "任务完成: " + taskId;
     }
+
+    /**
+     * 查询某用户处理过的历史任务
+     */
+    @GetMapping("/historyTasks")
+    public List<TaskDTO> getHistoryTasks(@RequestParam String assignee) {
+        List<HistoricTaskInstance> list = historyService
+                .createHistoricTaskInstanceQuery()
+                .taskAssignee(assignee)   // 指定办理人
+                .finished()               // 只查已完成的任务
+                .orderByHistoricTaskInstanceEndTime().desc()
+                .list();
+
+        return list.stream()
+                .map(task -> new TaskDTO(
+                        task.getId(),
+                        task.getName(),
+                        task.getStartTime(),
+                        task.getEndTime(),
+                        task.getProcessInstanceId()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
+    @GetMapping("/historyInstances")
+    public List<Map<String, Object>> getHistoryInstances() {
+        List<HistoricProcessInstance> list = historyService
+                .createHistoricProcessInstanceQuery()
+                .finished()
+                .orderByProcessInstanceEndTime().desc()
+                .list();
+
+        return list.stream().map(h -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", h.getId());
+            map.put("name", h.getName());
+            map.put("startTime", h.getStartTime());
+            map.put("endTime", h.getEndTime());
+            map.put("startUserId", h.getStartUserId());
+            return map;
+        }).collect(Collectors.toList());
+    }
+
 }
